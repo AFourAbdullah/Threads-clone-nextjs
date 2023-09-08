@@ -34,10 +34,10 @@ export default function AccountProfile({ user, btnTitle }: Props) {
   const form = useForm({
     resolver: zodResolver(UserValidation),
     defaultValues: {
-      name: "",
-      profile_photo: "",
-      username: "",
-      bio: "",
+      name: user?.name || "",
+      profile_photo: user?.image || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
     },
   });
   function onSubmit(values: z.infer<typeof UserValidation>) {
