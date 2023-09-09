@@ -18,9 +18,13 @@ const threadSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  //parent id in case if thread is a comment
   parentId: {
     type: String,
   },
+  //parent id in case if thread has  comments and those comment can also have children i.e a  multilevel commenting functioanlity
+
   children: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,6 +33,7 @@ const threadSchema = new mongoose.Schema({
   ],
 });
 
-const Thread = mongoose.models.Thread || mongoose.model("Thread", threadSchema);
+const Thread =
+  mongoose.models.threads || mongoose.model("threads", threadSchema);
 
 export default Thread;
