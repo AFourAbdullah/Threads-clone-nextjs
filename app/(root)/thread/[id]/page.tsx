@@ -13,6 +13,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
   const post = await fetchThreadById(params.id);
+  console.log("the iddddd is", userInfo?.id);
 
   return (
     <section className="relative">
@@ -33,7 +34,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         <Comment
           threadId={post._id}
           currentUserImage={user?.imageUrl}
-          currentUserId={JSON.stringify(userInfo?.id) || ""}
+          currentUserId={JSON.stringify(userInfo?._id) || ""}
         />
       </div>
     </section>
