@@ -8,7 +8,8 @@ const page = async () => {
   const user = await currentUser();
   if (!user) return null;
   const userInfo = await fetchUser(user.id);
-  const activity = await getActivity(userInfo?.id);
+  console.log("userringfo ise", userInfo);
+  const activity = await getActivity(userInfo?._id);
   if (!userInfo?.onboarded) redirect("/onboarding");
   return (
     <section>
