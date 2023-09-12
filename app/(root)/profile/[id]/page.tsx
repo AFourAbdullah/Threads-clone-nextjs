@@ -6,6 +6,7 @@ import ProfileHeader from "@/components/shared/ProfileHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { profileTabs } from "@/constants";
 import Image from "next/image";
+import ThreadsTab from "@/components/shared/ThreadsTab";
 
 const page = async ({ params }: { params: { id: string } }) => {
   if (!params.id) return null;
@@ -14,6 +15,7 @@ const page = async ({ params }: { params: { id: string } }) => {
   if (!user) return null;
   const userInfo = await fetchUser(params.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
+  //the user info can be either the logged in user or any other user profile which is being viewed by curent logged in user
   return (
     <section>
       {/**there will be two types of id pass to the profile header one if the current logged in user is viewing their profile and
@@ -53,7 +55,13 @@ const page = async ({ params }: { params: { id: string } }) => {
               key={`content-${tab.label}`}
               value={tab.value}
               className="w-full text-light-1"
-            ></TabsContent>
+            >
+              <ThreadsTab
+                currentUserId={user.id}
+                accountId={userInfo.id}
+                accountType="User"
+              />
+            </TabsContent>
           ))}
         </Tabs>
       </div>
