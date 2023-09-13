@@ -1,16 +1,21 @@
 import AccountProfile from "@/components/forms/AccountProfile";
+import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
   const user = await currentUser();
-  const userInfo = {};
+  if (!user) return null; // to avoid typescript warnings
+
+  const userInfo = await fetchUser(user.id);
+  if (userInfo?.onboarded) redirect("/");
   const userData = {
-    id: user?.id,
+    id: user.id,
     objectId: userInfo?._id,
-    username: user?.username || userInfo?.username,
-    name: user?.firstName || userInfo?.name,
-    bio: userInfo?.bio || "",
-    image: user?.imageUrl || userInfo?.image,
+    username: userInfo ? userInfo?.username : user.username,
+    name: userInfo ? userInfo?.name : user.firstName ?? "",
+    bio: userInfo ? userInfo?.bio : "",
+    image: userInfo ? userInfo?.image : user.imageUrl,
   };
   return (
     <main className="px-10 py-20 flex max-w-3xl flex-col justify-start mx-auto">
