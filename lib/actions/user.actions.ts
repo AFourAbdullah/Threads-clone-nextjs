@@ -1,11 +1,27 @@
 "use server";
 
+import { FilterQuery, SortOrder } from "mongoose";
 import { revalidatePath } from "next/cache";
-import User from "../models/usermodel";
-import { connectToDB } from "../mongoose";
+
+import Community from "../models/communitymodel";
 import Thread from "../models/threadmodel";
-import { FilterQuery } from "mongoose";
-import { SortOrder } from "mongoose";
+import User from "../models/usermodel";
+
+import { connectToDB } from "../mongoose";
+
+export async function fetchUser(userId: string) {
+  try {
+    connectToDB();
+
+    return await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+}
+
 interface Params {
   userId: string;
   username: string;
@@ -15,17 +31,17 @@ interface Params {
   path: string;
 }
 
-//function to update and create user
 export async function updateUser({
   userId,
-  name,
-  username,
-  path,
   bio,
+  name,
+  path,
+  username,
   image,
 }: Params): Promise<void> {
-  connectToDB();
   try {
+    connectToDB();
+
     await User.findOneAndUpdate(
       { id: userId },
       {
@@ -37,6 +53,7 @@ export async function updateUser({
       },
       { upsert: true }
     );
+
     if (path === "/profile/edit") {
       revalidatePath(path);
     }
@@ -45,28 +62,20 @@ export async function updateUser({
   }
 }
 
-//function to get user data
-export async function fetchUser(userId: string) {
+export async function fetchThreadsOfUser(userId: string) {
   try {
     connectToDB();
-    return await User.findOne({ id: userId });
-    // .populate({path:"communities",model:Community})
-  } catch (error: any) {
-    throw new Error(`Failed to fetch user: ${error.message}`);
-  }
-}
-export async function fetchThreadsOfUser(userId: string) {
-  connectToDB();
-  try {
+
+    // Find all threads authored by the user with the given userId
     const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
       model: Thread,
       populate: [
-        // {
-        //   path: "community",
-        //   model: Community,
-        //   select: "name id image _id", // Select the "name" and "_id" fields from the "Community" model
-        // },
+        {
+          path: "community",
+          model: Community,
+          select: "name id image _id", // Select the "name" and "_id" fields from the "Community" model
+        },
         {
           path: "children",
           model: Thread,
@@ -84,6 +93,8 @@ export async function fetchThreadsOfUser(userId: string) {
     throw error;
   }
 }
+
+// Almost similar to Thead (search + pagination) and Community (search + pagination)
 export async function fetchUsers({
   userId,
   searchString = "",
@@ -141,25 +152,44 @@ export async function fetchUsers({
     throw error;
   }
 }
+
 export async function getActivity(userId: string) {
-  connectToDB();
   try {
-    //first get all the threads of userId
+    connectToDB();
+
+    // Find all threads created by the user
     const userThreads = await Thread.find({ author: userId });
-    const childThreatsIds = userThreads.reduce((acc, userThread) => {
+
+    // Collect all the child thread ids (replies) from the 'children' field of each user thread
+    const childThreadIds = userThreads.reduce((acc, userThread) => {
       return acc.concat(userThread.children);
     }, []);
+
+    // Find and return the child threads (replies) excluding the ones created by the same user
     const replies = await Thread.find({
-      _id: { $in: childThreatsIds },
-      author: { $ne: userId },
+      _id: { $in: childThreadIds },
+      author: { $ne: userId }, // Exclude threads authored by the same user
     }).populate({
       path: "author",
       model: User,
       select: "name image _id",
     });
+
     return replies;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching replies: ", error);
     throw error;
   }
 }
+interface Params {
+  userId: string;
+  username: string;
+  name: string;
+  bio: string;
+  image: string;
+  path: string;
+}
+
+//function to update and create user
+
+//function to get user data
