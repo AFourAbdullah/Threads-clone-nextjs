@@ -1,7 +1,5 @@
 import React from "react";
-import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
 import ProfileHeader from "@/components/shared/ProfileHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { profileTabs } from "@/constants";
@@ -30,7 +28,7 @@ const page = async ({ params }: { params: { id: string } }) => {
         bio={userInfo.bio}
       />
       <div className="mt-9">
-        <Tabs defaultValue="threads" className="w-full">
+        <Tabs defaultValues="threads" className="w-full">
           <TabsList className="tab">
             {profileTabs.map((tab) => (
               <TabsTrigger key={tab.label} value={tab.value} className="tab">
